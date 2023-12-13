@@ -1,0 +1,25 @@
+version: '3'
+services:
+  model-endpoint:
+    build:
+      context: ./A_ModelEndpoint
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./A_ModelEndpoint/Model:/Model
+  backend-server:
+    build:
+      context: ./B_UtilitiesEndpoint
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./B_UtilitiesEndpoint/pretrained_models:/pretrained_models
+    depends_on:
+      - model-endpoint
+  ui-frontend:
+    build:
+      context: ./C_UIEndpoint
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-server

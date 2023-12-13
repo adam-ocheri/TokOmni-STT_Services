@@ -1,0 +1,6 @@
+env
+.env
+pretrained_models
+*.mp3
+*.wav
+__pycache__
