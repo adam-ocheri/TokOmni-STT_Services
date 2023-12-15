@@ -6,6 +6,18 @@ import os
 from dotenv import load_dotenv
 from storage_access import S3Client
 from audio_utils import AudioSource
+
+"""
+I have a flask app that uses pyDub.AudioSegment which needs a converter like ffmpeg.exe to be present in the system. 
+While this works for me locally, I get an error trying to run it through a docker container.
+I am getting this error:
+File "/usr/local/lib/python3.11/site-packages/pydub/audio_segment.py", line 728, in from_file
+  info = mediainfo_json(orig_file, read_ahead_limit=read_ahead_limit)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'
+
+What solutions do I have for using 
+"""
 from db_connection import PostgresController
 from speechbrain.pretrained import SpectralMaskEnhancement
 from flask_cors import CORS
@@ -14,6 +26,11 @@ from file_utils import generate_presigned_url, upload_file_to_s3, download_audio
 from dotenv import load_dotenv
 
 load_dotenv()
+runtime_env = os.getenv("RUNTIME_ENV")
+
+# base_api_url = "http://127.0.0.1" if runtime_env == "production" else "http://localhost"
+base_api_url = "http://127.0.0.1"
+
 aws_bucket = os.getenv("AWS_S3_BUCKET_NAME")
 aws_access_key = os.getenv("AWS_S3_ACCESS_KEY")
 aws_secret_access_key = os.getenv("AWS_S3_SECRET_ACCESS_KEY")
@@ -40,10 +57,11 @@ nr_model = SpectralMaskEnhancement.from_hparams(
     savedir="pretrained_models/metricgan-plus-voicebank",
 )
 
+
 app = Flask(__name__)
 CORS(
-    app,
-    resources={r"/request_transcription_work/*": {"origins": "http://localhost:3000"}},
+    app  # ,
+    # resources={r"/request_transcription_work/*": {"origins": f"{base_api_url}:3000"}},
 )
 
 
@@ -75,7 +93,7 @@ def request_transcription_work(filename):
         )
 
     # Send the zip file to another server
-    model_service_url = "http://localhost:8080/start_transcription_job"  # Replace with the actual URL of the other server
+    model_service_url = f"{base_api_url}:8080/start_transcription_job"  # Replace with the actual URL of the other server
     files = {"zip_file": open(zip_file_path, "rb")}
     response = requests.post(model_service_url, files=files)
 
@@ -103,4 +121,4 @@ def on_transcription_work_failed():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)

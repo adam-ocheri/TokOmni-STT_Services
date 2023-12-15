@@ -18,6 +18,7 @@ host = postgres_db_url
 
 table_name = "test_table"
 
+
 def stringify_transcript(transcript):
     counter = 0
     stringified_transcript = ""

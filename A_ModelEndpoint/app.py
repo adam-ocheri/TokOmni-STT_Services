@@ -7,11 +7,16 @@ import librosa
 import torch
 from audio_splitter import split_audio_file
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
+from dotenv import load_dotenv
+
+load_dotenv()
+runtime_env = os.getenv("RUNTIME_ENV")
+base_api_url = "http://127.0.0.1" if runtime_env == "production" else "http://localhost"
 
 app = Flask(__name__)
 CORS(
     app,
-    resources={r"/start_transcription_job/*": {"origins": "http://localhost:5000"}},
+    resources={r"/start_transcription_job/*": {"origins": f"{base_api_url}:5000"}},
 )
 
 cache_dir = "./Model/"
@@ -110,12 +115,12 @@ def start_transcription_job():
         sorted_transcript = sorted(full_transcript, key=lambda x: x["start_time"])
 
         response = requests.post(
-            f"http://localhost:5000/on_transcription_work_finished/",
+            f"{base_api_url}:5000/on_transcription_work_finished/",
             json={"fullTranscript": sorted_transcript},
         )
 
     except Exception as e:
-        response = requests.get(f"http://localhost:5000/on_transcription_work_failed/")
+        response = requests.get(f"{base_api_url}:5000/on_transcription_work_failed/")
         print("Error at Transcription Service: ", e)
         return jsonify({"message": "Error at Transcription Service"})
 
@@ -128,4 +133,4 @@ def test_front():
 
 
 if __name__ == "__main__":
-    app.run(debug=False, port=8080)
+    app.run(host="0.0.0.0", debug=False, port=8080)

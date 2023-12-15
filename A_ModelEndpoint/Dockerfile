@@ -8,8 +8,6 @@ COPY app.py /
 COPY audio_splitter.py /
 COPY requirements.txt /
 
-# torch==2.0.1+cu117
-
 RUN pip install torch torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 
 RUN pip install --no-cache-dir -r requirements.txt
