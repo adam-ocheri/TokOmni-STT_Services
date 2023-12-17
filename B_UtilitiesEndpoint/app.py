@@ -18,12 +18,17 @@ FileNotFoundError: [Errno 2] No such file or directory: 'ffprobe'
 
 What solutions do I have for using 
 """
+
 from db_connection import PostgresController
 from speechbrain.pretrained import SpectralMaskEnhancement
 from flask_cors import CORS
 from file_utils import generate_presigned_url, upload_file_to_s3, download_audio_file
 
 from dotenv import load_dotenv
+
+os.makedirs("audio_processed", exist_ok=True)
+os.makedirs("audio_processed/BusinessClient", exist_ok=True)
+os.makedirs("audio_processed/ServicePerson", exist_ok=True)
 
 load_dotenv()
 runtime_env = os.getenv("RUNTIME_ENV")
@@ -60,8 +65,8 @@ nr_model = SpectralMaskEnhancement.from_hparams(
 
 app = Flask(__name__)
 CORS(
-    app  # ,
-    # resources={r"/request_transcription_work/*": {"origins": f"{base_api_url}:3000"}},
+    app,
+    resources={r"/request_transcription_work/*": {"origins": f"{base_api_url}:3000"}},
 )
 
 
@@ -91,18 +96,18 @@ def request_transcription_work(filename):
             conversation.audio_channel__business_client,
             os.path.basename(conversation.audio_channel__business_client),
         )
-
+    return jsonify({"message": "Finished Successfully"}), 200
     # Send the zip file to another server
-    model_service_url = f"{base_api_url}:8080/start_transcription_job"  # Replace with the actual URL of the other server
-    files = {"zip_file": open(zip_file_path, "rb")}
-    response = requests.post(model_service_url, files=files)
+    # model_service_url = f"{base_api_url}:8080/start_transcription_job"  # Replace with the actual URL of the other server
+    # files = {"zip_file": open(zip_file_path, "rb")}
+    # response = requests.post(model_service_url, files=files)
 
-    # Check the response from the other server
-    if response.status_code == 200:
-        transcript = response.json().get("fullTranscript")
-        return jsonify({"fullTranscript": transcript})
-    else:
-        return jsonify({"message": "Error sending file to the other server"}), 500
+    # # Check the response from the other server
+    # if response.status_code == 200:
+    #     transcript = response.json().get("fullTranscript")
+    #     return jsonify({"fullTranscript": transcript})
+    # else:
+    #     return jsonify({"message": "Error sending file to the other server"}), 500
 
 
 @app.route("/on_transcription_work_finished/", methods=["POST"])

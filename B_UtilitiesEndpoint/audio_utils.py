@@ -1,11 +1,15 @@
 from pydub import AudioSegment
 import torch
 import torchaudio
+import os
 from pathlib import Path
 
-AudioSegment.converter = (
-    r"C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin\ffmpeg.exe"
-)
+# Set the path to the ffmpeg binary
+# environ["FFMPEG_BINARY"] = "/usr/bin/ffmpeg"
+# AudioSegment.converter = (
+#     r"C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin\ffmpeg.exe"
+# )
+# AudioSegment.converter = "/usr/bin/ffmpeg"
 
 
 class AudioUtils:
