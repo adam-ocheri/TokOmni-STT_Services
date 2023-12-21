@@ -96,18 +96,18 @@ def request_transcription_work(filename):
             conversation.audio_channel__business_client,
             os.path.basename(conversation.audio_channel__business_client),
         )
-    return jsonify({"message": "Finished Successfully"}), 200
+    # return jsonify({"message": "Finished Successfully"}), 200
     # Send the zip file to another server
-    # model_service_url = f"{base_api_url}:8080/start_transcription_job"  # Replace with the actual URL of the other server
-    # files = {"zip_file": open(zip_file_path, "rb")}
-    # response = requests.post(model_service_url, files=files)
+    model_service_url = f"{base_api_url}:8080/start_transcription_job"  # Replace with the actual URL of the other server
+    files = {"zip_file": open(zip_file_path, "rb")}
+    response = requests.post(model_service_url, files=files)
 
-    # # Check the response from the other server
-    # if response.status_code == 200:
-    #     transcript = response.json().get("fullTranscript")
-    #     return jsonify({"fullTranscript": transcript})
-    # else:
-    #     return jsonify({"message": "Error sending file to the other server"}), 500
+    # Check the response from the other server
+    if response.status_code == 200:
+        transcript = response.json().get("fullTranscript")
+        return jsonify({"fullTranscript": transcript}), 200
+    else:
+        return jsonify({"message": "Error sending file to the other server"}), 500
 
 
 @app.route("/on_transcription_work_finished/", methods=["POST"])
@@ -116,14 +116,20 @@ def on_transcription_work_finished():
     transcript = response.get("fullTranscript")
     print("Full Transcript Obtained:\n", transcript)
     db.on_transcription_finished(transcript)
-    return jsonify({})
+    return jsonify({"message": "Transcription Completed Successfully"})
 
 
 @app.route("/on_transcription_work_failed/", methods=["GET"])
 def on_transcription_work_failed():
     db.on_transcription_failed()
-    return jsonify({})
+    return jsonify({"message": "Transcription Failed!"})
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
+
+
+"""
+ERROR:
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='127.0.0.1', port=8080): Max retries exceeded with url: /start_transcription_job (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f95fcd48790>: Failed to establish a new connection: [Errno 111] Connection refused'))
+"""

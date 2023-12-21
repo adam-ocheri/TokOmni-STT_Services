@@ -4,6 +4,8 @@ ENV RUNTIME_ENV=production
 
 WORKDIR /
 
+RUN apt-get update && apt-get install -y ffmpeg
+
 COPY app.py /
 COPY audio_splitter.py /
 COPY requirements.txt /
